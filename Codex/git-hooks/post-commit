@@ -1,0 +1,31 @@
+﻿#!/bin/bash
+# post-commit: 提交完成后自动追加审计日志
+# 记录 commit hash、变更文件、时间戳
+
+WORKSPACE_ROOT=$(git rev-parse --show-toplevel)
+LOG_FILE="$WORKSPACE_ROOT/审计日志.jsonl"
+COMMIT_HASH=$(git rev-parse --short HEAD)
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DEVICE=$COMPUTERNAME
+[ -z "$DEVICE" ] && DEVICE="unknown"
+USER_NAME=$USERNAME
+[ -z "$USER_NAME" ] && USER_NAME="unknown"
+
+# 获取本次提交的变更文件
+FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+
+for f in $FILES; do
+    # 判断级别
+    LEVEL="L2"
+    case "$f" in
+        "md/文件权限系统.md"|".codex/config.toml"|".codex/hooks.json"|"md/config.toml.模板"|"md/hooks.json.模板") LEVEL="L0" ;;
+        "AGENTS.md"|".gitignore"|"安全审核.ps1"|"审计日志.jsonl"|"md/画像映射表.md"|"md/变更标记规范.md"|"md/S级清单.md") LEVEL="L1" ;;
+        .codex/*|hooks/*|git-hooks/*|Automation/*) LEVEL="L1" ;;
+    esac
+
+    ENTRY="{\"id\":\"AUTO-$TIMESTAMP\",\"ts\":\"$TIMESTAMP\",\"device\":\"$DEVICE\",\"user\":\"$USER_NAME\",\"action\":\"git-commit\",\"file\":\"$f\",\"level\":\"$LEVEL\",\"commit\":\"$COMMIT_HASH\"}"
+    echo "$ENTRY" >> "$LOG_FILE"
+done
+
+echo "Audit log updated: $LOG_FILE"
+exit 0

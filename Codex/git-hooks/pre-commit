@@ -1,0 +1,45 @@
+﻿#!/bin/bash
+# pre-commit: 检查 L0/L1 文件是否有未经安全审核批准的变更
+# 如果发现未批准的 L0/L1 变更，阻止提交
+
+set -e
+
+# L0 文件清单（与 文件权限系统.md §三 保持一致）
+L0_FILES=("md/文件权限系统.md" ".codex/config.toml" ".codex/hooks.json" "md/config.toml.模板" "md/hooks.json.模板")
+# L1 文件清单
+L1_FILES=("AGENTS.md" ".gitignore" "安全审核.ps1" "审计日志.jsonl" "md/画像映射表.md" "md/变更标记规范.md" "md/S级清单.md")
+
+BLOCKED=0
+WARNED=0
+
+# 检查 L0
+for f in "${L0_FILES[@]}"; do
+    if git diff --cached --name-only | grep -q "^$f$"; then
+        echo "BLOCKED: L0 文件 [$f] 在暂存区，需双确认+安全审核.ps1 -Approve 后才能提交"
+        BLOCKED=1
+    fi
+done
+
+# 检查 L1
+for f in "${L1_FILES[@]}"; do
+    if git diff --cached --name-only | grep -q "^$f$"; then
+        echo "WARNING: L1 文件 [$f] 在暂存区，请确认已通过安全审核.ps1 -Approve"
+        WARNED=1
+    fi
+done
+
+# 检查 L1 目录
+L1_DIRS=(".codex/" "git-hooks/" "Automation/" "hooks/")
+for d in "${L1_DIRS[@]}"; do
+    if git diff --cached --name-only | grep -q "^$d"; then
+        echo "WARNING: L1 目录 [$d] 有变更在暂存区，请确认已通过安全审核"
+        WARNED=1
+    fi
+done
+
+if [ $BLOCKED -eq 1 ]; then
+    echo "提交被阻止。请先运行: .\安全审核.ps1 -Request -File <文件> -Reason <原因>"
+    exit 1
+fi
+
+exit 0

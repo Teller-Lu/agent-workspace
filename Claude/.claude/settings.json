@@ -1,0 +1,52 @@
+﻿{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "agent-workspace 配置。文件级别 L0，修改需双确认。hooks 脚本自动检测工作区根目录，无需改路径。",
+  "_maintainer": "系统Agent",
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[agent-workspace] 你是系统Agent。进入工作区先读 CLAUDE.md。'"
+          }
+        ]
+      }
+    ],
+
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -NoProfile -File hooks/check_permission.ps1"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -NoProfile -File hooks/check_s_level.ps1"
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -NoProfile -File hooks/after_edit.ps1"
+          }
+        ]
+      }
+    ]
+  }
+}

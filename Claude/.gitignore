@@ -1,0 +1,24 @@
+﻿# === S 级文件（秘密级，不可入库）===
+# 所有标记为 S 级的文件/目录必须在此列出
+# S 级 = Claude（拥有方）可读写，Codex 不可读
+# 示例（取消注释并替换为实际 S 级路径）：
+# confidential/
+
+# === 本地配置（claude 路径/代理，不入库）===
+automation.conf
+
+# === 审计日志（高频追加，按需入库或忽略）===
+审计日志.jsonl
+
+# === 备份 ===
+.backups/
+
+# === 临时文件 ===
+.digests/*
+!.digests/.gitkeep
+__pycache__/
+*.pyc
+*.tmp
+
+# === 运行日志（Automation 高频追加，不入库）===
+*.log

@@ -1,0 +1,18 @@
+# Automation 配置 —— 复制为 automation.conf 并按需填（automation.conf 已 gitignore）
+#
+# 仅"每周工作总结"(step3) 需要无头 claude 分析当天对话；
+# "文件变更记录"(step1) 与 "待办聚合"(step2) 是确定性的，不需要本配置也能跑。
+#
+# CLAUDE_BIN : 无头 claude 可执行。默认走 PATH 里的 `claude`；
+#              若未加入 PATH（如 Windows 原生版装在 ~/.local/bin），填其绝对/相对路径。
+# PROXY_HOST : 本地代理主机（默认 127.0.0.1）。仅当 claude 联网需经代理时才有意义。
+# PROXY_PORT : 本地代理端口。留空 = 直连、不探代理（普通环境）；
+#              填端口（如 7890）才启用"调 claude 前预检代理 + 退避重试"的容错。
+#
+# 零配置即可跑：claude 已在 PATH、且无需代理时，本文件可以不创建。
+# 认证：无头 claude 复用 `claude` 已登录的账号态（存于 ~/.claude）；
+#       首次使用前须在终端启动一次 claude 完成登录，之后无头调用即可复用，无需在本文件填密钥。
+
+CLAUDE_BIN=claude
+PROXY_HOST=127.0.0.1
+PROXY_PORT=

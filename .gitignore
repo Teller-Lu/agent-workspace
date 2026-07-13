@@ -1,0 +1,26 @@
+﻿# === S 级文件（秘密级，不可入库）===
+# 所有标记为 S 级的文件/目录必须在此列出，确保涉密材料永不提交
+# S 级 = 拥有方 AI 可读写，其他 AI 不可读
+# 示例（取消注释并替换为实际 S 级路径）：
+# Codex/Standard/<机密目录>/
+# Claude/confidential/
+
+# === 密钥与配置（含 token，不入库）===
+**/automation.conf
+**/.codex/config.toml
+**/.codex/hooks.json
+
+# === 审计日志（高频追加，按需入库或忽略）===
+# 审计日志.jsonl  # 如需入库则注释此行
+
+# === 备份 ===
+**/.backups/
+
+# === 临时文件 ===
+**/.digests/
+**/__pycache__/
+*.pyc
+*.tmp
+
+# === 运行日志（Automation 高频追加，不入库）===
+*.log

@@ -1,0 +1,40 @@
+﻿# Codex config.toml 模板（脱敏）
+# 使用时复制到 ~/.codex/config.toml 或项目 .codex/config.toml
+# ⚠️ 不要在此文件中填写 API Key、token 或登录态
+
+# === 基础配置 ===
+model_provider = "openai"          # 或 "custom"（自定义 API 端点）
+model = "your-model-name"          # 填写实际模型名
+personality = "pragmatic"          # none / friendly / pragmatic
+approval_policy = "on-request"     # on-request / never
+sandbox_mode = "workspace-write"  # workspace-write / read-only
+disable_response_storage = true     # 自定义 provider 时建议开启
+model_reasoning_effort = "high"     # low / medium / high
+
+# === 画像预设（按需切换） ===
+# 命名原则：名字描述能力、不模仿原生名。两家 AI 共用同一套用户词汇。
+#
+# read:   sandbox_mode="read-only",  approval_policy="never",  network_access=false  → 真只读（Codex回退到read-only+approvals disabled，写不了也不给提权）
+# search:       sandbox_mode="read-only",  approval_policy="never",  network_access=true   → 联网只读
+# work:   sandbox_mode="workspace-write", approval_policy="on-request", network_access=true
+# auto:   sandbox_mode="workspace-write", approval_policy="on-request", network_access=true  → 同常规，区别在无人值守（越界无人批=拦）
+# bypass:       sandbox_mode="danger-full-access", approval_policy="never", network_access=true  → 全放开，唯留S读禁
+
+# === 联网控制 ===
+[sandbox_workspace_write]
+network_access = true              # true=enabled / false=restricted
+
+# === Windows sandbox ===
+[windows]
+sandbox = true                     # Windows OS 级 sandbox 开关
+
+# === hooks 启用 ===
+[features]
+codex_hooks = true                 # 启用 .codex/hooks.json
+
+# === 自定义 provider 示例（兼容端点） ===
+# [model_providers.custom]
+# name = "custom"
+# wire_api = "responses"
+# requires_openai_auth = false
+# base_url = "http://localhost:PORT/v1"

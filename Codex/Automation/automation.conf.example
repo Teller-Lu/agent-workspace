@@ -1,0 +1,18 @@
+# Automation 配置 —— 复制为 automation.conf 并按需填（automation.conf 已 gitignore）
+#
+# 仅"每周工作总结"(step3) 需要无头 codex 分析当天对话；
+# "文件变更记录"(step1) 与 "待办聚合"(step2) 是确定性的，不需要本配置也能跑。
+#
+# CODEX_BIN  : 无头 codex 可执行。默认走 PATH 里的 `codex`；
+#              若未加入 PATH，填其绝对/相对路径。
+# PROXY_HOST : 本地代理主机（默认 127.0.0.1）。仅当 codex 联网需经代理时才有意义。
+# PROXY_PORT : 本地代理端口。留空 = 直连、不探代理（普通环境）；
+#              填端口（如 7890）才启用"调 codex 前预检代理 + 退避重试"的容错。
+#
+# 零配置即可跑：codex 已在 PATH、且无需代理时，本文件可以不创建。
+# 认证：codex exec 复用 `codex login` 的登录态（~/.codex/auth.json）；
+#       使用公司模型时，~/.codex/config.toml 配 model_provider/base_url 即可，无需额外认证。
+
+CODEX_BIN=codex
+PROXY_HOST=127.0.0.1
+PROXY_PORT=
