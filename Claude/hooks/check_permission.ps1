@@ -9,7 +9,7 @@
 # 决定:
 #   read/search : 一律 deny (plan 原生也禁写, 此为兜底)
 #   work        : 范围内 L2 allow / 其余 ask ; 范围外 L2 也升为 ask
-#   auto        : 范围内 L2,L1 allow / L0 有令牌则 allow+消费 否则 deny ; 范围外一律 deny
+#   auto        : 范围内 L2,L1 allow / L0 ask(无人应答即 deny) ; 范围外一律 deny
 #   bypass      : 一律 allow (S 读禁由 check_s_level.ps1 另管)
 # L0 且结果非 deny 时: 先自动备份(滚动10份)+打 git tag。
 # 工作区根自动检测(脚本所在 hooks/ 的上一级); 工作区外文件一律放行(exit 0)。
@@ -56,14 +56,15 @@ try { $cwdAbs = [System.IO.Path]::GetFullPath($cwdAbs) } catch {}
 $cwdAbs = $cwdAbs.TrimEnd([char]92)
 $inScope = ($absPath -ieq $cwdAbs) -or $absPath.StartsWith(($cwdAbs + [char]92), [System.StringComparison]::OrdinalIgnoreCase)
 
-# --- L级 映射 (须与 after_edit.ps1 / 安全审核.ps1 / 文件权限系统.md 保持一致) ---
-$L0_files = @("md\文件权限系统.md", ".claude\settings.json")
+# --- L级 映射 (须与 after_edit.ps1 / 安全审核.ps1 / 权限系统.md 保持一致) ---
+$L0_files = @("md\权限系统.md", ".claude\settings.json")
 $L1_files = @("CLAUDE.md", ".gitignore", "安全审核.ps1", "审计日志.jsonl", "md\变更标记规范.md", "md\画像映射表.md", "md\S级清单.md")
 $L1_dirs  = @(".claude\agents\", "hooks\", "Automation\")
 $level = "L2"
 foreach ($f in $L0_files) { if ($relPath -eq $f) { $level = "L0"; break } }
 if ($level -eq "L2") { foreach ($f in $L1_files) { if ($relPath -eq $f) { $level = "L1"; break } } }
 if ($level -eq "L2") { foreach ($d in $L1_dirs)  { if ($relPath.StartsWith($d)) { $level = "L1"; break } } }
+if ($level -eq "L2" -and $relPath -like "*\.claude\settings.json") { $level = "L1" }   # 各子项目"钩子覆盖件"(根的 .claude\settings.json 已在 L0 优先命中)
 
 function Emit([string]$decision, [string]$reason) {
     $obj = @{ hookSpecificOutput = @{ hookEventName = "PreToolUse"; permissionDecision = $decision; permissionDecisionReason = $reason } }
@@ -90,19 +91,8 @@ elseif ($profile -eq "auto") {
         switch ($level) {
             "L2" { $decision = "allow" }
             "L1" { $decision = "allow" }
-            "L0" { $decision = "token" }
+            "L0" { $decision = "ask" }   # 无人应答(无头/长时间无人)即 deny; 有人即便在别忙也能确认放行。差别: work 的 L0 一直等、不自动 deny
         }
-    }
-}
-
-# auto + L0 + 范围内: 令牌 (存在则放行并消费, 否则 deny)
-if ($decision -eq "token") {
-    $tokenPath = Join-Path $workspaceRoot ".claude\L0令牌.txt"
-    if (Test-Path $tokenPath) {
-        try { [System.IO.File]::Delete($tokenPath) } catch {}
-        $decision = "allow"
-    } else {
-        $decision = "deny"
     }
 }
 

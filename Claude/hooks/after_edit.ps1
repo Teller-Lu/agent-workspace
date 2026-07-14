@@ -46,7 +46,7 @@ if ($relPath -like ".git\*" -or $relPath -like ".backups\*") { exit 0 }
 # ============================================
 # 推断级别（与 check_permission.ps1 保持一致）
 # ============================================
-$L0_files = @("md\文件权限系统.md", ".claude\settings.json")
+$L0_files = @("md\权限系统.md", ".claude\settings.json")
 $L1_files = @("CLAUDE.md", ".gitignore", "安全审核.ps1", "审计日志.jsonl", "md\变更标记规范.md", "md\画像映射表.md", "md\S级清单.md")
 $L1_dirs = @(".claude\agents\", "hooks\", "Automation\")
 
@@ -58,6 +58,7 @@ if ($level -eq "L2") {
 if ($level -eq "L2") {
     foreach ($d in $L1_dirs) { if ($relPath.StartsWith($d)) { $level = "L1"; break } }
 }
+if ($level -eq "L2" -and $relPath -like "*\.claude\settings.json") { $level = "L1" }   # 各子项目"钩子覆盖件"(根的 .claude\settings.json 已在 L0 优先命中)
 
 # ============================================
 # 收集环境上下文 (通用: 不预设特定终端名)

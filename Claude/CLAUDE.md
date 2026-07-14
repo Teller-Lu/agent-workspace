@@ -49,7 +49,7 @@ Claude/
 ├── WorkRecord/             # L2 | 每周工作总结模板
 ├── Sample/                 # 示例项目（供参考构建）
 └── md/                     # 制度文档
-    ├── 文件权限系统.md        # L0 | 完整权限制度（L0/L1/L2 + 画像 + S/P）
+    ├── 权限系统.md            # L0 | 完整权限制度（L0/L1/L2 + 画像 + S/P）
     ├── 画像映射表.md         # L1 | 画像 → Claude 原生模式 + 三维判定表
     ├── hooks策略.md          # L2 | Claude hooks 策略说明
     ├── 变更标记规范.md        # L1 | 文档变更标记规范
@@ -73,7 +73,7 @@ Claude/
 | **read** | plan | 离线只读 | 一切写 deny |
 | **search** | plan（+联网） | 联网查资料/只读分析 | 一切写 deny |
 | **work** | manual(default) | 日常开发（主力） | 范围内 L2 放行 / L1、L0 询问 / 范围外升一档 |
-| **auto** | acceptEdits | 无人值守长任务 | 范围内 L1、L2 放行 / L0 一次性令牌 / 范围外 deny |
+| **auto** | acceptEdits | 无人值守长任务 | 范围内 L1、L2 放行 / L0 走 ask（无人应答即 deny） / 范围外 deny |
 | **bypass** | bypassPermissions | 全放开（极少用） | 全放行（唯 S 读禁仍拦） |
 
 完整"L 级 × 画像 × 范围"判定表见 `md/画像映射表.md §四`。
@@ -86,7 +86,7 @@ Claude/
 | **L1** | 关键指令文件、脚本、新增文件 | 用户批准 + 审计 |
 | **L2** | 普通说明、记录、工作文档 | 通常可直接修改，hooks 自动审计 |
 
-- **L0**：`md/文件权限系统.md`、`.claude/settings.json`。
+- **L0**：`md/权限系统.md`、`.claude/settings.json`。
 - **L1**：`CLAUDE.md`、`安全审核.ps1`、`.gitignore`、`审计日志.jsonl`、`md/变更标记规范.md`、`md/画像映射表.md`、`md/S级清单.md`，及目录 `hooks/`、`.claude/agents/`、`Automation/`。
 - **L2**：其余。工作区外的文件 hook 一律不管。
 
@@ -100,7 +100,7 @@ Claude/
 - S 级路径在 `md/S级清单.md` 的 ` ```paths ` 代码块维护，同时列入 `.gitignore`（保证不入库）。
 - **S 级文件不得放入会被自动加载的位置**（CLAUDE.md / memory / SessionStart 引用路径）——约定强制（自动注入内容不是 Read/Bash 调用，hook 拦不到）。
 
-完整制度见 `md/文件权限系统.md`。
+完整制度见 `md/权限系统.md`。
 
 ---
 
@@ -173,7 +173,7 @@ Claude/
 | 触发 | 动作 |
 |---|---|
 | 新增/删除根级文件 | 更新 §三 文件地图 |
-| 权限规则变化 | 更新 §四（同时 `md/文件权限系统.md`） |
+| 权限规则变化 | 更新 §四（同时 `md/权限系统.md`） |
 | 新增 subagent | 更新 §五（同时 `.claude/agents/`） |
 | 新增 hook | 更新 §六（同时 `.claude/settings.json`） |
 

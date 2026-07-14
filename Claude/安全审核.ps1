@@ -1,7 +1,7 @@
 ﻿# ============================================
 # 安全审核.ps1 — 统一权限安全员（查询 + 手动批准流 + L0 加固）
 # ============================================
-# 两种执行机制，同一套权限策略（L0/L1/L2，权威定义见 md/文件权限系统.md §三）：
+# 两种执行机制，同一套权限策略（L0/L1/L2，权威定义见 md/权限系统.md §三）：
 #   1) Hook 模式（Claude Code）：hooks/check_permission.ps1 + after_edit.ps1 自动门禁/审计/提交
 #   2) 手动模式（Codex 等 无 hook 的 Agent）：本脚本 -Request/-Approve/-Log 流程
 # 本脚本兼顾两者：手动批准流 + 审计查询。审计 schema 与 after_edit.ps1 一致，-Report 通用。
@@ -22,8 +22,8 @@ $workspaceRoot = $PSScriptRoot
 if (-not $workspaceRoot) { $workspaceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $logPath = Join-Path $workspaceRoot "审计日志.jsonl"
 
-# ---- 权限清单（须与 hooks/*.ps1 及 md/文件权限系统.md §三 一致）----
-$L0_files = @("md\文件权限系统.md", ".claude\settings.json")
+# ---- 权限清单（须与 hooks/*.ps1 及 md/权限系统.md §三 一致）----
+$L0_files = @("md\权限系统.md", ".claude\settings.json")
 $L1_files = @("CLAUDE.md", ".gitignore", "安全审核.ps1", "审计日志.jsonl", "md\变更标记规范.md", "md\画像映射表.md", "md\S级清单.md")
 $L1_dirs  = @(".claude\agents\", "hooks\", "Automation\")
 
@@ -31,6 +31,7 @@ function Get-Level($rel) {
     foreach ($f in $L0_files) { if ($rel -eq $f) { return "L0" } }
     foreach ($f in $L1_files) { if ($rel -eq $f) { return "L1" } }
     foreach ($d in $L1_dirs)  { if ($rel.StartsWith($d)) { return "L1" } }
+    if ($rel -like "*\.claude\settings.json") { return "L1" }   # 各子项目"钩子覆盖件"(根的已在 L0 优先命中)
     return "L2"
 }
 

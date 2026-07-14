@@ -19,8 +19,8 @@
 
 读三样东西判一次写：**permission_mode**（定画像 read/search/work/auto/bypass）＋ **cwd**（定项目范围：目标是否在 cwd 子树内）＋ **目标文件 L 级**（L0/L1/L2）。
 
-- level 映射：L0（文件权限系统.md、settings.json）/ L1（CLAUDE.md、安全审核.ps1、.gitignore、审计日志.jsonl、变更标记规范.md、画像映射表.md、S级清单.md，及 `hooks/`、`.claude/agents/`、`Automation/` 目录）/ L2（其余）。工作区外文件一律放行。
-- 判定：read/search → 一律 deny；work → 范围内 L2 allow、L1/L0 ask、范围外升一档；auto → 范围内 L1/L2 allow、L0 凭一次性令牌否则 deny、范围外 deny；bypass → 一律 allow（S 读禁另拦）。完整表见 `md/画像映射表.md §四`。
+- level 映射：L0（权限系统.md、settings.json）/ L1（CLAUDE.md、安全审核.ps1、.gitignore、审计日志.jsonl、变更标记规范.md、画像映射表.md、S级清单.md，及 `hooks/`、`.claude/agents/`、`Automation/` 目录）/ L2（其余）。工作区外文件一律放行。
+- 判定：read/search → 一律 deny；work → 范围内 L2 allow、L1/L0 ask、范围外升一档；auto → 范围内 L1/L2 allow、L0 ask（无人应答即 deny）、范围外 deny；bypass → 一律 allow（S 读禁另拦）。完整表见 `md/画像映射表.md §四`。
 - L0 且结果非 deny：先自动备份（滚动留 10 份）+ 打 git tag。
 - 画像读不到（老版本无 `permission_mode` 或未知值）→ 兜底当 work。
 
@@ -47,4 +47,4 @@
 ## 六、部署到你的实际工作区
 - 三个 `.ps1` 放 `hooks/`，`.claude/settings.json` 配好三个 matcher（见 §一），`.ps1` 保持 UTF-8 BOM。
 - 改 `.claude/settings.json` 属 L0，按你的权限流程确认；hook 在会话启动时加载，改完需**新开会话**才生效（"S 读 deny 实测"须在新会话做）。
-- 按你实际工作区的文件集，核对 `check_permission.ps1`/`after_edit.ps1` 的 L 级清单（须与 `md/文件权限系统.md §3.1` 一致）。
+- 按你实际工作区的文件集，核对 `check_permission.ps1`/`after_edit.ps1` 的 L 级清单（须与 `md/权限系统.md §3.1` 一致）。
