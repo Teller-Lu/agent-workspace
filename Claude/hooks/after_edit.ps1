@@ -47,7 +47,7 @@ if ($relPath -like ".git\*" -or $relPath -like ".backups\*") { exit 0 }
 # 推断级别（与 check_permission.ps1 保持一致）
 # ============================================
 $L0_files = @("md\权限系统.md", ".claude\settings.json")
-$L1_files = @("CLAUDE.md", ".gitignore", "安全审核.ps1", "审计日志.jsonl", "md\变更标记规范.md", "md\画像映射表.md", "md\S级清单.md")
+$L1_files = @("CLAUDE.md", ".gitignore", "安全审核.ps1", "审计日志.jsonl", "md\变更标记规范.md", "md\画像映射表.md", "md\S级清单.md", "md\MCP工具分级表.md")
 $L1_dirs = @(".claude\agents\", "hooks\", "Automation\")
 
 $level = "L2"

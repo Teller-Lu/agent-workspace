@@ -34,7 +34,7 @@
 Claude/
 ├── CLAUDE.md               # L1 | 本文件，Claude 工作区手册
 ├── hooks/                  # Claude hook 脚本（工作区根路径自动检测）
-│   ├── check_permission.ps1 # PreToolUse(Edit/Write)：按画像+范围+L级判写权限
+│   ├── check_permission.ps1 # PreToolUse(Edit/Write/Bash/Web/MCP)：画像判权限（文件写线 + 工具类线）
 │   ├── check_s_level.ps1    # PreToolUse(Read/Bash)：拦对方 S 秘密读取
 │   └── after_edit.ps1       # PostToolUse：写审计 + git commit
 ├── .claude/                # Claude Code 运行时配置
@@ -54,6 +54,7 @@ Claude/
     ├── hooks策略.md          # L2 | Claude hooks 策略说明
     ├── 变更标记规范.md        # L1 | 文档变更标记规范
     ├── S级清单.md             # L1 | 对方 AI 的 S 级路径清单
+    ├── MCP工具分级表.md       # L1 | MCP 工具三档（只读/写/代码执行），hook 直接读它判权限
     ├── 审计记录.md            # L2 | 人可读审计摘要
     └── Skills.md            # L2 | Skills 框架说明
 ```
@@ -62,7 +63,15 @@ Claude/
 
 ## 四、权限规则
 
-权限有三个正交维度，每次写由三者叠加决定：**画像**（对话姿态）×**L0/L1/L2**（文件多重要）×**范围**（目标是否在对话 cwd 内）。读则另由 **S/P** 管。
+> **v0.0.3 重大扩张：画像的射程从"只管文件写"扩到全部四类工具。**
+> 此前 hook 只挂在 `Edit|Write|NotebookEdit` 上——**Bash / WebFetch / WebSearch / MCP 完全在画像管辖之外**，全部落回 Claude Code 原生白名单；而白名单和 hooks 一样**不继承父目录**，子目录会话白名单归零 → 弹窗轰炸（连 `echo` 都在弹）。见 4.2。
+
+权限判定分**两条线**，都以画像为第一维：
+
+- **文件写线**：画像 × **L0/L1/L2**（文件多重要）× **范围**（是否在对话 cwd 内）→ 见 4.1 + 4.3
+- **工具类线**：画像 × **工具类**（本地只读 / 联网只读 / 代码执行 / MCP）→ 见 4.2
+
+读则另由 **S/P** 管（见 4.4）。
 
 ### 4.1 画像层（对话级，5 档，纯英文）
 
@@ -76,9 +85,33 @@ Claude/
 | **auto** | acceptEdits | 无人值守长任务 | 范围内 L1、L2 放行 / L0 走 ask（无人应答即 deny） / 范围外 deny |
 | **bypass** | bypassPermissions | 全放开（极少用） | 全放行（唯 S 读禁仍拦） |
 
+> **read 与 search 在 Claude 侧实现上分不出**——两者都映射到 `plan`，hook 收到的 `permission_mode` 只有一个值。实际统一按 **search** 处理（联网只读放行）。"离线只读"在 Claude Code 里没有对应的原生模式。
+
 完整"L 级 × 画像 × 范围"判定表见 `md/画像映射表.md §四`。
 
-### 4.2 文件层（L0 / L1 / L2，管"改"）
+### 4.2 工具类层（画像 × 工具类，管"跑命令 / 联网 / 调 MCP"）
+
+工具按**可逆性 + 危害面**分四类（不按名字分），各有天花板：
+
+| 工具类 | read / search | work | auto | bypass |
+|---|---|---|---|---|
+| **A 本地只读**（Read/Glob/Grep） | allow | allow | allow | allow |
+| **B 联网只读**（WebFetch/WebSearch） | **allow** | **allow** | **allow** | allow |
+| **C 代码执行**（Bash、MCP 的 exec 档） | 纯净只读 allow / 其余 **deny** | 纯净只读 allow / 其余 **divide** | 同 work | allow |
+| **D MCP·只读** | **allow** | **allow** | **allow** | allow |
+| **D MCP·写**（不可逆） | deny | **ask**（⚠ 白名单免疫不了） | **ask** | allow |
+| **D MCP·未登记** | deny | **ask**（保守兜底） | **ask** | allow |
+
+**`divide`（分流）= 第四种决策**：hook **不表态**，把决定权分流给「原生白名单 + 人」——命中白名单即执行，未命中弹窗 ask（work 一直等 / auto 无人应答即 deny）。**它既不是放行、也不是拒绝**。注意 `ask` 是"**强制问**"（连白名单里的也照问），比 divide **更严**，两者不可混用。
+
+- **C 类天花板 = divide，永不 allow**：`python -` 的代码从 stdin 喂进去，**命令行文本规则拦不住**，所以代码执行类不开 allow。唯一例外"**纯净只读命令**"直放——命令头 ∈ `{echo, :, [, test, export, command, pwd, ls}` 或 `git status|log|diff|show`，**且**整条不含 `| ; & < > 反引号 $( 回车`（`echo x && rm -rf /` 也是 echo 开头，必须拦）。
+- **MCP 分档**见 `md/MCP工具分级表.md`（L1，模板里是空壳，部署后按实际接入的 MCP 填）；**未登记的一律 ask**。
+- **画像的增量价值**：原生白名单一旦点"总是允许"就永久放行；画像能 override——read/search 整类关死、**MCP 写类强制 ask 让白名单免疫不了不可逆操作**、bypass 全放。
+- **横切兜底**：Bash 命令触及 S 级路径 → **deny**。
+
+完整矩阵与 `divide` 定义见 `md/画像映射表.md §四之二 / §四之三`。
+
+### 4.3 文件层（L0 / L1 / L2，管"改"）
 
 | 级别 | 含义 | AI 修改要求 |
 |---|---|---|
@@ -90,7 +123,7 @@ Claude/
 - **L1**：`CLAUDE.md`、`安全审核.ps1`、`.gitignore`、`审计日志.jsonl`、`md/变更标记规范.md`、`md/画像映射表.md`、`md/S级清单.md`，及目录 `hooks/`、`.claude/agents/`、`Automation/`。
 - **L2**：其余。工作区外的文件 hook 一律不管。
 
-### 4.3 阅读层（S / P，管"读"，与画像无关）
+### 4.4 阅读层（S / P，管"读"，与画像无关）
 
 | 级别 | 含义 | 规则 |
 |---|---|---|
@@ -129,7 +162,7 @@ Claude/
 | Hook | 触发时机 | 自动动作 |
 |---|---|---|
 | SessionStart | 每次开新对话 | 提示先读 CLAUDE.md |
-| PreToolUse（Edit/Write/NotebookEdit） | AI 改文件前 | `check_permission.ps1`：读画像+范围+L级判 allow/ask/deny；L0 先备份+打 tag |
+| PreToolUse（Edit/Write/NotebookEdit<br>**+ Bash/WebFetch/WebSearch/`mcp__*`**） | AI 改文件 / 跑命令 / 联网 / 调 MCP 前 | `check_permission.ps1`：读画像 + 工具类（+范围 + L级），按两张矩阵判 allow/deny/ask/**divide**；L0 先备份+打 tag |
 | PreToolUse（Read/Bash） | AI 读/跑命令前 | `check_s_level.ps1`：命中对方 S 路径 → deny |
 | PostToolUse（Edit/Write/NotebookEdit） | AI 改文件后 | `after_edit.ps1`：追加审计 JSON + git add/commit |
 

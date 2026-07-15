@@ -10,6 +10,20 @@
 **/.codex/config.toml
 **/.codex/hooks.json
 
+# === Claude Code 本地审批记录 / 会话缓存（绝不入库）===
+# settings.local.json 是用户点"总是允许"累积的白名单，里面有本机绝对路径、邮箱、
+# 常访问域名（= 个人研究画像），属敏感信息。
+# 必须带 **/ 前缀：每个子目录的 .claude/ 都会各自生成一份；不带 ** 只匹配根级那一份，
+# 子目录的全部漏网。（保留 settings.json 和 agents/ —— 那些是要入库的制度文件。）
+**/.claude/settings.local.json
+**/.claude/sessions/
+**/.claude/cache/
+**/.claude/logs/
+**/.claude/projects/
+**/.claude/shell-snapshots/
+**/.claude/todos/
+**/.claude/statsig/
+
 # === 审计日志（高频追加，按需入库或忽略）===
 # 审计日志.jsonl  # 如需入库则注释此行
 

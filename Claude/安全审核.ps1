@@ -24,7 +24,7 @@ $logPath = Join-Path $workspaceRoot "审计日志.jsonl"
 
 # ---- 权限清单（须与 hooks/*.ps1 及 md/权限系统.md §三 一致）----
 $L0_files = @("md\权限系统.md", ".claude\settings.json")
-$L1_files = @("CLAUDE.md", ".gitignore", "安全审核.ps1", "审计日志.jsonl", "md\变更标记规范.md", "md\画像映射表.md", "md\S级清单.md")
+$L1_files = @("CLAUDE.md", ".gitignore", "安全审核.ps1", "审计日志.jsonl", "md\变更标记规范.md", "md\画像映射表.md", "md\S级清单.md", "md\MCP工具分级表.md")
 $L1_dirs  = @(".claude\agents\", "hooks\", "Automation\")
 
 function Get-Level($rel) {
