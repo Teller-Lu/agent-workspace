@@ -2,6 +2,12 @@
 
 > agent-workspace 各版本变更概要（简明）。每项的来龙去脉见 `变更详情.md`。
 
+## v0.0.4 — 2026-07-15
+
+- **修复**：每日工作总结 `Automation/extract_day.py` 只采根工作区 cwd、漏所有子目录独立 cwd 会话 → `find_projects_dir` 改 `find_projects_dirs`，先定位根 project 目录名、再前缀通配 `<根名>` 与 `<根名>-*` 纳入根 + 全部子目录 cwd 会话（不硬编码工作区名，保持通用）；`main()` 遍历多目录合并。实测纳入 3 个 project 目录、端到端 user 34→61。
+- **兜底**：`Automation/daily_worklog.sh` 加第 6 条"文件变更兜底"铁律——对话摘要漏采时据 git 文件变更补写。
+- **Codex 侧（待 Codex 修）**：核实其 `Codex/Automation/extract_day.py` 有等价盲区（recursive 扫全文件，但 cwd `==` 精确匹配过滤掉子目录会话）；修法已给（改子树匹配），交 Codex 认领。见 `变更详情.md` / `多AI交流_本地工作改造.md §五`。
+
 ## v0.0.3 — 2026-07-14
 
 - **重大扩张**：画像的射程从"只管文件写"扩到**全部四类工具**。此前 hook 只挂 `Edit|Write|NotebookEdit`，Bash / WebFetch / WebSearch / MCP 全部落回原生白名单；而白名单**不继承父目录**（与 v0.0.2 的 D2 同一根因、官方原文同一句话的后半句），子目录会话白名单归零 → 弹窗轰炸（连 `echo` 都在弹）。
