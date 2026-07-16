@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/sh
 # post-commit: 提交完成后自动追加审计日志
 # 记录 commit hash、变更文件、时间戳
 

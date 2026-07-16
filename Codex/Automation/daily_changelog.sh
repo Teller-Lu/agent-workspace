@@ -27,9 +27,9 @@ day_changes() {
   local files
   files=$(cd "$WSROOT" && git log --since="$d 00:00:00" --until="$d 23:59:59" --name-only --pretty=format: 2>/dev/null \
         | grep -vE '^\s*$' | sort -u)
-  local n; n=$(echo "$files" | grep -c . 2>/dev/null || echo 0)
+  local n; n=$(echo "$files" | grep -c . 2>/dev/null) || n=0
   if [ "$n" -eq 0 ]; then echo "无提交"; return; fi
-  local dirs; dirs=$(echo "$files" | sed 's#/.*##' | sort -u | tr '\n' '、')
+  local dirs; dirs=$(echo "$files" | sed 's#/.*##' | sort -u | sed ':a; N; $!ba; s/\n/、/g')
   echo "改动 $n 个文件，涉及：${dirs}"
 }
 
@@ -47,7 +47,7 @@ write_day() {
   local wk mon sun
   wk=$(iso_week "$d"); mon=$(week_monday "$d")
   sun=$(date -d "$mon +6 days" +%Y-%m-%d 2>/dev/null || date -j -v+6d -f %Y-%m-%d "$mon" +%Y-%m-%d 2>/dev/null)
-  if ! grep -q "第${wk}周" "$CL" 2>/dev/null; then
+  if ! grep -q "第 ${wk} 周" "$CL" 2>/dev/null; then
     # 找最后一个 ### 日标题 或 文件末尾前插入周标题；简单做法：追加
     {
       echo ""

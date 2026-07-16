@@ -1,37 +1,39 @@
-﻿{
+{
   "_comment": "Codex hooks 配置模板。启用需在 config.toml 中设 [features] codex_hooks = true。注意：PreToolUse/PostToolUse 仅匹配 Bash，不匹配 Edit/Write/Read。",
-  "PreToolUse": [
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "powershell -ExecutionPolicy Bypass -NoProfile -File hooks/check_s_level.ps1",
-          "timeout": 10
-        }
-      ]
-    }
-  ],
-  "Stop": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "powershell -ExecutionPolicy Bypass -NoProfile -File hooks/after_turn.ps1",
-          "timeout": 15
-        }
-      ]
-    }
-  ],
-  "SessionStart": [
-    {
-      "matcher": "startup",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "echo [Codex workspace] 进入工作区，先读 AGENTS.md"
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -NoProfile -File hooks/check_s_level.ps1",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -NoProfile -File hooks/after_turn.ps1",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo {\\\"message\\\":\\\"[Codex workspace] enter workspace, read AGENTS.md first\\\"}"
+          }
+        ]
+      }
+    ]
+  }
 }

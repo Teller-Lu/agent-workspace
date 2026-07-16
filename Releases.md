@@ -2,11 +2,18 @@
 
 > agent-workspace 各版本变更概要（简明）。每项的来龙去脉见 `变更详情.md`。
 
+## v0.0.5 — 2026-07-16
+
+- **核查结论**：核查 Claude v0.0.2/v0.0.3 变更是否波及 Codex 侧—结论均为"不成立"（D2 hooks 全局加载 / 无令牌机制 / 统一走 Bash / 沙箱配置全局 / 审计日志无敏感字段）。见 `变更详情.md` v0.0.5。
+- **同步落地 SYNC-002~011**：本版本提交同时落地 Codex 侧 hooks/git-hooks/automation 修复（after_turn 自动提交+删除恢复、check_s_level L0/L1 拦截+多 bug 修复、hooks.json 格式、shebang、extract_day.py 子目录 cwd、hook trust 文档等），各项详情见对应版本条目。
+
 ## v0.0.4 — 2026-07-15
 
 - **修复**：每日工作总结 `Automation/extract_day.py` 只采根工作区 cwd、漏所有子目录独立 cwd 会话 → `find_projects_dir` 改 `find_projects_dirs`，先定位根 project 目录名、再前缀通配 `<根名>` 与 `<根名>-*` 纳入根 + 全部子目录 cwd 会话（不硬编码工作区名，保持通用）；`main()` 遍历多目录合并。实测纳入 3 个 project 目录、端到端 user 34→61。
 - **兜底**：`Automation/daily_worklog.sh` 加第 6 条"文件变更兜底"铁律——对话摘要漏采时据 git 文件变更补写。
 - **Codex 侧（待 Codex 修）**：核实其 `Codex/Automation/extract_day.py` 有等价盲区（recursive 扫全文件，但 cwd `==` 精确匹配过滤掉子目录会话）；修法已给（改子树匹配），交 Codex 认领。见 `变更详情.md` / `多AI交流_本地工作改造.md §五`。
+- **安全增强（重大）**：check_s_level.ps1 新增 L0/L1 删除拦截（deny/ask）+ 外部路径写入拦截（ask），并修复多个 Windows 兼容性 bug（正则反引号转义、char 乘法、Get-Content 编码、正斜杠路径匹配）。
+- **安全增强（重大）**：after_turn.ps1 新增删除检测 + 审批检查 + 自动恢复。有审批的删除跳过恢复，无审批的删除自动从 git 恢复。解决 P012（提权命令绕过 hook 删除文件）缺口。
 
 ## v0.0.3 — 2026-07-14
 
@@ -24,6 +31,11 @@
 - **变更**：去掉 auto 画像的"一次性令牌"，改为 `auto + L0 = ask`（人在可确认、无人应答即 deny）。
 - **改名**：`md/文件权限系统.md` → `md/权限系统.md`（含全部引用）。
 - **修复**：Codex git-hooks shebang `#!/bin/bash` → `#!/bin/sh`（Windows 上 Git for Windows 找不到 `/bin/bash` 导致 hooks 无法执行）。修复后 L0/L1 提交门禁 + 审计日志自动写入在 Windows 上正常工作。
+- **新增**：after_turn.ps1 回合结束自动提交（`git add -u` + `git commit --no-verify`），确保 AI 会话中修改的文件实时进 git。
+- **修复**：hooks.json 格式从扁平改为 `hooks` 包装格式（Codex CLI 要求）。
+- **修复**：after_turn.ps1 正则 `^??` → `^\?\?`（量词 bug 导致 auto-commit 从不触发）。
+- **修复**：after_turn.ps1 中文路径 `\u` 转义 → 实际 UTF-8 字符。
+- **文档**：hooks策略.md 补充 hook trust 机制说明（用户需在 Codex 设置中手动信任 hooks）。
 
 ## v0.0.1
 

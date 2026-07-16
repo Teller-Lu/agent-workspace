@@ -122,3 +122,22 @@ config.toml 无 per-path 读禁配置。整个 .codex 目录搜索无 denyRead/d
 - `deny` → 任何情况硬拦、无窗（绝对）
 - `ask` → 交互会话会弹窗等人批；只有真正无头（无人无窗定时任务）才穿透
 - 人工批准层在交互下可用
+---
+
+## 首次启用必须信任 hooks
+
+Codex CLI 有 **hook trust 安全机制**：hooks 配置后默认不执行，需要用户手动信任。
+
+**操作步骤：**
+
+1. 完成 hooks.json 配置后，启动 Codex
+2. 打开 Codex 设置（桌面版 Settings 或 CLI 启动时的信任提示）
+3. 在 hooks 列表中找到你的工作区 hooks（check_s_level.ps1、after_turn.ps1、SessionStart echo）
+4. 对每个选择“信任”
+
+**不信任的后果**：hooks 不执行，等于：
+- S 级读隔离失效（check_s_level 不触发）
+- 回合结束自动提交失效（after_turn 不触发）
+- 审计日志不写入
+
+**临时绕过**：`codex --dangerously-bypass-hook-trust`（单次生效，不持久化）

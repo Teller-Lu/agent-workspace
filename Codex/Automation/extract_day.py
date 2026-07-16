@@ -123,9 +123,13 @@ def main():
         except Exception:
             return False
 
+    def _in_ws(f):
+        c = norm_path(session_cwd(f) or "")
+        return c == target_cwd or c.startswith(target_cwd + os.sep)
+
     all_rollouts = glob.glob(os.path.join(sessions, "**", "*.jsonl"), recursive=True)
     matched = [f for f in all_rollouts
-               if in_window(f) and norm_path(session_cwd(f) or "") == target_cwd]
+               if in_window(f) and _in_ws(f)]
 
     users, assts = [], []
     for f in matched:

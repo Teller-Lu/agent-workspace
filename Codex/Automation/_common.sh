@@ -70,7 +70,8 @@ call_codex() {
   local prompt="$1" out rc try=1 lastmsg
   lastmsg="$(mktemp)"
   while :; do
-    printf '%s' "$prompt" | "$CODEX_BIN" exec \
+    # UTF-8 安全网：清洗 prompt 中的非法字节（iconv //IGNORE），防止 codex 拒绝非 UTF-8 stdin
+    printf '%s' "$prompt" | iconv -f UTF-8 -t UTF-8//IGNORE 2>/dev/null | "$CODEX_BIN" exec \
       -s workspace-write \
       -c approval_policy=never \
       --skip-git-repo-check \
